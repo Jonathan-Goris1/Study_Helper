@@ -10,15 +10,20 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.StudyHelper">
         <activity
+            android:name=".controller.QuestionEditActivity"
+            android:exported="false"
+            android:parentActivityName="controller.QuestionActivity" />
+        <activity
             android:name=".controller.QuestionActivity"
             android:exported="false"
             android:launchMode="singleTop"
-            android:parentActivityName=".controller.SubjectActivity"/>
+            android:parentActivityName=".controller.SubjectActivity" />
         <activity
             android:name=".controller.SubjectActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

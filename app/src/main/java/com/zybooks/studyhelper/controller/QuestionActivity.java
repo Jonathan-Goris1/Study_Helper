@@ -1,7 +1,12 @@
 package com.zybooks.studyhelper.controller;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Activity;
 import android.app.SearchManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -19,6 +24,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -26,6 +32,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.List;
+import com.google.android.material.snackbar.Snackbar;
 
 public class QuestionActivity extends AppCompatActivity {
 
@@ -44,6 +51,8 @@ public class QuestionActivity extends AppCompatActivity {
     private ViewGroup mShowQuestionLayout;
     private ViewGroup mNoQuestionLayout;
 
+    private Question mDeletedQuestion;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,8 +64,8 @@ public class QuestionActivity extends AppCompatActivity {
         mSubjectText = intent.getString(EXTRA_SUBJECT_Text, "Math");
 
         // Get all questions for this subject
-        mStudyDb = StudyDatabase.getInstance();
-        mQuestionList = mStudyDb.getQuestions(mSubjectId);
+        mStudyDb = StudyDatabase.getInstance(getApplicationContext());
+        mQuestionList = mStudyDb.questionDao().getQuestions(mSubjectId);
 
         mQuestionText = findViewById(R.id.question_text_view);
         mAnswerLabel = findViewById(R.id.answer_label_text_view);
@@ -148,22 +157,110 @@ public class QuestionActivity extends AppCompatActivity {
     private void updateAppBarTitle() {
 
         // Display subject and number of questions in app bar
-        Subject subject = mStudyDb.getSubject(mSubjectId);
+        Subject subject = mStudyDb.subjectDao().getSubject(mSubjectId);
         String title = getResources().getString(R.string.question_number,
                 subject.getText(), mCurrentQuestionIndex + 1, mQuestionList.size());
         setTitle(title);
     }
 
     private void addQuestion() {
-        // TODO: Add question
+        Intent intent = new Intent(this, QuestionEditActivity.class);
+        intent.putExtra(QuestionEditActivity.EXTRA_SUBJECT_ID, mSubjectId);
+        mAddQuestionResultLauncher.launch(intent);
     }
+
+    private final ActivityResultLauncher<Intent> mAddQuestionResultLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            new ActivityResultCallback<ActivityResult>() {
+                @Override
+                public void onActivityResult(ActivityResult result) {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+                        Intent data = result.getData();
+                        if (data != null) {
+                            long questionId = data.getLongExtra(QuestionEditActivity.EXTRA_QUESTION_ID, -1);
+                            Question newQuestion = mStudyDb.questionDao().getQuestion(questionId);
+
+                            // Add newly created question to the question list and show it
+                            mQuestionList.add(newQuestion);
+                            showQuestion(mQuestionList.size() - 1);
+
+                            // Change layout in case this is the first question
+                            displayQuestion(true);
+
+                            Toast.makeText(QuestionActivity.this, R.string.question_added, Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                }
+            });
 
     private void editQuestion() {
-        // TODO: Edit question
+        if (mCurrentQuestionIndex >= 0) {
+            Intent intent = new Intent(this, QuestionEditActivity.class);
+            long questionId = mQuestionList.get(mCurrentQuestionIndex).getId();
+            intent.putExtra(QuestionEditActivity.EXTRA_QUESTION_ID, questionId);
+            mEditQuestionResultLauncher.launch(intent);
+        }
     }
 
+    private final ActivityResultLauncher<Intent> mEditQuestionResultLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            new ActivityResultCallback<ActivityResult>() {
+                @Override
+                public void onActivityResult(ActivityResult result) {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+                        Intent data = result.getData();
+                        if (data != null) {
+                            // Get updated question
+                            long questionId = data.getLongExtra(QuestionEditActivity.EXTRA_QUESTION_ID, -1);
+                            Question updatedQuestion = mStudyDb.questionDao().getQuestion(questionId);
+
+                            // Replace current question in question list with updated question
+                            Question currentQuestion = mQuestionList.get(mCurrentQuestionIndex);
+                            currentQuestion.setText(updatedQuestion.getText());
+                            currentQuestion.setAnswer(updatedQuestion.getAnswer());
+                            showQuestion(mCurrentQuestionIndex);
+
+                            Toast.makeText(QuestionActivity.this, R.string.question_updated, Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                }
+            });
+
     private void deleteQuestion() {
-        // TODO: Delete question
+        if (mCurrentQuestionIndex >= 0) {
+            Question question = mQuestionList.get(mCurrentQuestionIndex);
+            mStudyDb.questionDao().deleteQuestion(question);
+            mQuestionList.remove(mCurrentQuestionIndex);
+
+            // Save question in case user wants to undo delete
+            mDeletedQuestion = question;
+
+            if (mQuestionList.isEmpty()) {
+                // No questions left to show
+                mCurrentQuestionIndex = -1;
+                updateAppBarTitle();
+                displayQuestion(false);
+            }
+            else {
+                showQuestion(mCurrentQuestionIndex);
+            }
+
+            // Show delete message with Undo button
+            Snackbar snackbar = Snackbar.make(findViewById(R.id.coordinator_layout),
+                    R.string.question_deleted, Snackbar.LENGTH_LONG);
+            snackbar.setAction(R.string.undo, v -> {
+                // Add question back with a new auto-increment id
+                mDeletedQuestion.setId(0);
+                mStudyDb.questionDao().insertQuestion(mDeletedQuestion);
+
+                // Add question back to list of questions, and display it
+                mQuestionList.add(mDeletedQuestion);
+                showQuestion(mQuestionList.size() - 1);
+                displayQuestion(true);
+            });
+            snackbar.show();
+
+        }
     }
 
     private void showQuestion(int questionIndex) {
