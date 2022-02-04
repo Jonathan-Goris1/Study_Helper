@@ -1,12 +1,11 @@
 package com.zybooks.studyhelper.model;
 
-import androidx.annotation.NonNull;
+import static androidx.room.ForeignKey.CASCADE;
+
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.ForeignKey;
 import androidx.room.PrimaryKey;
-
-import static androidx.room.ForeignKey.CASCADE;
 
 @Entity(foreignKeys = @ForeignKey(entity = Subject.class, parentColumns = "id",
         childColumns = "subject_id", onDelete = CASCADE))

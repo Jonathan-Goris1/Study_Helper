@@ -10,26 +10,26 @@ import java.util.List;
 @Dao
 public interface SubjectDao {
     @Query("SELECT * FROM Subject WHERE id = :id")
-    public Subject getSubject(long id);
+    Subject getSubject(long id);
 
     @Query("SELECT * FROM Subject WHERE text = :subjectText")
-    public Subject getSubjectByText(String subjectText);
+    Subject getSubjectByText(String subjectText);
 
     @Query("SELECT * FROM Subject ORDER BY text COLLATE NOCASE")
-    public List<Subject> getSubjects();
+    List<Subject> getSubjects();
 
     @Query("SELECT * FROM Subject ORDER BY updated DESC")
-    public List<Subject> getSubjectsNewerFirst();
+    List<Subject> getSubjectsNewerFirst();
 
     @Query("SELECT * FROM Subject ORDER BY updated ASC")
-    public List<Subject> getSubjectsOlderFirst();
+    List<Subject> getSubjectsOlderFirst();
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    public long insertSubject(Subject subject);
+    long insertSubject(Subject subject);
 
     @Update
-    public void updateSubject(Subject subject);
+    void updateSubject(Subject subject);
 
     @Delete
-    public void deleteSubject(Subject subject);
+    void deleteSubject(Subject subject);
 }

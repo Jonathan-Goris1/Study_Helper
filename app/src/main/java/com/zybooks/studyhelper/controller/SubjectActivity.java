@@ -87,7 +87,7 @@ public class SubjectActivity extends AppCompatActivity
             implements View.OnClickListener, View.OnLongClickListener {
 
         private Subject mSubject;
-        private TextView mTextView;
+        private final TextView mTextView;
 
         public SubjectHolder(LayoutInflater inflater, ViewGroup parent) {
             super(inflater.inflate(R.layout.recycler_view_items, parent, false));
@@ -182,7 +182,7 @@ public class SubjectActivity extends AppCompatActivity
     private class SubjectAdapter extends RecyclerView.Adapter<SubjectHolder> {
 
 
-        private List<Subject> mSubjectList;
+        private final List<Subject> mSubjectList;
 
         public void addSubject(Subject subject) {
             // Add the new subject at the beginning of the list

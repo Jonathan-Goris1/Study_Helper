@@ -1,20 +1,7 @@
 package com.zybooks.studyhelper.controller;
 
-import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultCallback;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.app.Activity;
 import android.app.SearchManager;
-import android.net.Uri;
-import android.os.Bundle;
-
-import com.zybooks.studyhelper.R;
-import com.zybooks.studyhelper.model.Question;
-import com.zybooks.studyhelper.model.Subject;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
@@ -26,13 +13,19 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.util.List;
 import com.google.android.material.snackbar.Snackbar;
+import com.zybooks.studyhelper.R;
+import com.zybooks.studyhelper.model.Question;
+import com.zybooks.studyhelper.model.Subject;
+
+import java.util.List;
 
 public class QuestionActivity extends AppCompatActivity {
 
@@ -41,7 +34,6 @@ public class QuestionActivity extends AppCompatActivity {
 
     private StudyDatabase mStudyDb;
     private long mSubjectId;
-    private String mSubjectText;
     private List<Question> mQuestionList;
     private TextView mAnswerLabel;
     private TextView mAnswerText;
@@ -61,7 +53,6 @@ public class QuestionActivity extends AppCompatActivity {
         // SubjectActivity should provide the subject ID of the questions to display
         Bundle intent = getIntent().getExtras();
         mSubjectId = intent.getLong(EXTRA_SUBJECT_ID, 0);
-        mSubjectText = intent.getString(EXTRA_SUBJECT_Text, "Math");
 
         // Get all questions for this subject
         mStudyDb = StudyDatabase.getInstance(getApplicationContext());
@@ -85,8 +76,7 @@ public class QuestionActivity extends AppCompatActivity {
         if (mQuestionList.size() == 0) {
             updateAppBarTitle();
             displayQuestion(false);
-        }
-        else {
+        } else {
             displayQuestion(true);
             toggleAnswerVisibility();
         }
@@ -104,30 +94,24 @@ public class QuestionActivity extends AppCompatActivity {
         //  Determine which app bar item was chosen
         if (item.getItemId() == R.id.search) {
             String query = mQuestionText.getText().toString();
-                Intent intent = new Intent(Intent.ACTION_WEB_SEARCH);
-                intent.putExtra(SearchManager.QUERY, query);
-                startActivity(intent);
+            Intent intent = new Intent(Intent.ACTION_WEB_SEARCH);
+            intent.putExtra(SearchManager.QUERY, query);
+            startActivity(intent);
 
             return true;
-        }
-
-        else if (item.getItemId() == R.id.previous) {
+        } else if (item.getItemId() == R.id.previous) {
             showQuestion(mCurrentQuestionIndex - 1);
             return true;
-        }
-        else if (item.getItemId() == R.id.next) {
+        } else if (item.getItemId() == R.id.next) {
             showQuestion(mCurrentQuestionIndex + 1);
             return true;
-        }
-        else if (item.getItemId() == R.id.add) {
+        } else if (item.getItemId() == R.id.add) {
             addQuestion();
             return true;
-        }
-        else if (item.getItemId() == R.id.edit) {
+        } else if (item.getItemId() == R.id.edit) {
             editQuestion();
             return true;
-        }
-        else if (item.getItemId() == R.id.delete) {
+        } else if (item.getItemId() == R.id.delete) {
             deleteQuestion();
             return true;
         }
@@ -147,8 +131,7 @@ public class QuestionActivity extends AppCompatActivity {
         if (display) {
             mShowQuestionLayout.setVisibility(View.VISIBLE);
             mNoQuestionLayout.setVisibility(View.GONE);
-        }
-        else {
+        } else {
             mShowQuestionLayout.setVisibility(View.GONE);
             mNoQuestionLayout.setVisibility(View.VISIBLE);
         }
@@ -240,8 +223,7 @@ public class QuestionActivity extends AppCompatActivity {
                 mCurrentQuestionIndex = -1;
                 updateAppBarTitle();
                 displayQuestion(false);
-            }
-            else {
+            } else {
                 showQuestion(mCurrentQuestionIndex);
             }
 
@@ -269,8 +251,7 @@ public class QuestionActivity extends AppCompatActivity {
         if (mQuestionList.size() > 0) {
             if (questionIndex < 0) {
                 questionIndex = mQuestionList.size() - 1;
-            }
-            else if (questionIndex >= mQuestionList.size()) {
+            } else if (questionIndex >= mQuestionList.size()) {
                 questionIndex = 0;
             }
 
@@ -280,8 +261,7 @@ public class QuestionActivity extends AppCompatActivity {
             Question question = mQuestionList.get(mCurrentQuestionIndex);
             mQuestionText.setText(question.getText());
             mAnswerText.setText(question.getAnswer());
-        }
-        else {
+        } else {
             // No questions yet
             mCurrentQuestionIndex = -1;
         }
@@ -292,8 +272,7 @@ public class QuestionActivity extends AppCompatActivity {
             mAnswerButton.setText(R.string.show_answer);
             mAnswerText.setVisibility(View.INVISIBLE);
             mAnswerLabel.setVisibility(View.INVISIBLE);
-        }
-        else {
+        } else {
             mAnswerButton.setText(R.string.hide_answer);
             mAnswerText.setVisibility(View.VISIBLE);
             mAnswerLabel.setVisibility(View.VISIBLE);

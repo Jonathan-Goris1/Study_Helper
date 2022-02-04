@@ -2,7 +2,6 @@ package com.zybooks.studyhelper.controller;
 
 import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.text.InputType;
 import android.widget.EditText;
@@ -32,12 +31,10 @@ public class SubjectDialogFragment extends DialogFragment {
         return new AlertDialog.Builder(requireActivity())
                 .setTitle(R.string.subject)
                 .setView(subjectEditText)
-                .setPositiveButton(R.string.create, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int whichButton) {
-                        // Notify listener
-                        String subject = subjectEditText.getText().toString();
-                        mListener.onSubjectEntered(subject.trim());
-                    }
+                .setPositiveButton(R.string.create, (dialog, whichButton) -> {
+                    // Notify listener
+                    String subject = subjectEditText.getText().toString();
+                    mListener.onSubjectEntered(subject.trim());
                 })
                 .setNegativeButton(R.string.cancel, null)
                 .create();

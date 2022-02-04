@@ -1,6 +1,7 @@
 package com.zybooks.studyhelper.controller;
 
 import android.content.Context;
+
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
@@ -31,6 +32,7 @@ public abstract class StudyDatabase extends RoomDatabase {
     }
 
     public abstract QuestionDao questionDao();
+
     public abstract SubjectDao subjectDao();
 
     private void addStarterData() {
@@ -65,7 +67,7 @@ public abstract class StudyDatabase extends RoomDatabase {
                 questionDao().insertQuestion(question);
 
                 subject = new Subject("Computing");
-                subjectId = subjectDao().insertSubject(subject);
+                subjectDao().insertSubject(subject);
             });
         }
     }

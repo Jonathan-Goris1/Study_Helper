@@ -19,7 +19,7 @@ public class Subject {
     @ColumnInfo(name = "updated")
     private long mUpdateTime;
 
-    public Subject(String text) {
+    public Subject(@NonNull String text) {
         mText = text;
         mUpdateTime = System.currentTimeMillis();
     }
