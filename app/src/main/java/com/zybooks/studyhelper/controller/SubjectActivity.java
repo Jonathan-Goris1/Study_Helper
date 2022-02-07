@@ -1,6 +1,7 @@
 package com.zybooks.studyhelper.controller;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.ActionMode;
@@ -15,7 +16,9 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.FragmentManager;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -37,10 +40,19 @@ public class SubjectActivity extends AppCompatActivity
     private int mSelectedSubjectPosition = RecyclerView.NO_POSITION;
     private ActionMode mActionMode = null;
 
+    private SharedPreferences mSharedPrefs;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_subject);
+
+        // Change the theme if preference is true
+        mSharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+        boolean darkTheme = mSharedPrefs.getBoolean("dark_theme", false);
+        if (darkTheme) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+        }
 
         // Singleton
         mStudyDb = StudyDatabase.getInstance(getApplicationContext());
@@ -57,6 +69,16 @@ public class SubjectActivity extends AppCompatActivity
         mSubjectAdapter = new SubjectAdapter(loadSubjects());
         mRecyclerView.setAdapter(mSubjectAdapter);
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // Load subjects here in case settings changed
+        mSubjectAdapter = new SubjectAdapter(loadSubjects());
+        mRecyclerView.setAdapter(mSubjectAdapter);
+    }
+
 
     @Override
     public void onSubjectEntered(String subjectText) {
@@ -80,7 +102,14 @@ public class SubjectActivity extends AppCompatActivity
     }
 
     private List<Subject> loadSubjects() {
-        return mStudyDb.subjectDao().getSubjectsNewerFirst();
+        String order = mSharedPrefs.getString("subject_order", "alpha");
+        if (order.equals("alpha")) {
+            return mStudyDb.subjectDao().getSubjects();
+        } else if (order.equals("new_first")) {
+            return mStudyDb.subjectDao().getSubjectsNewerFirst();
+        } else {
+            return mStudyDb.subjectDao().getSubjectsOlderFirst();
+        }
     }
 
     private class SubjectHolder extends RecyclerView.ViewHolder
@@ -227,5 +256,29 @@ public class SubjectActivity extends AppCompatActivity
         public int getItemCount() {
             return mSubjectList.size();
         }
+    }
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.subject_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle item selection
+        if (item.getItemId() == R.id.settings) {
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);
+            return true;
+        } else if (item.getItemId() == R.id.import_questions) {
+            Intent intent = new Intent(this, ImportActivity.class);
+            startActivity(intent);
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 }
